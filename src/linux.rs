@@ -174,6 +174,8 @@ impl Command {
     /// Setting this to `false` allows setting GID maps without having the
     /// CAP_SETGID capability in the parent user namespace.
     ///
+    /// This method is no-op if `set_id_maps` is not called.
+    ///
     /// See `man 7 user_namespaces` for more info
     pub fn allow_setgroups(&mut self, val: bool) -> &mut Command {
         self.allow_setgroups = val;

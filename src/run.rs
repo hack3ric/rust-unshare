@@ -330,6 +330,13 @@ impl Command {
         }
 
         if let Some(&(ref uids, ref gids)) = self.config.id_maps.as_ref() {
+            if !self.allow_setgroups {
+                result(
+                    Err::SetIdMap,
+                    File::create(format!("/proc/{}/setgroups", pid))
+                        .and_then(|mut f| f.write_all(b"deny")),
+                )?;
+            }
             let mut buf = Vec::new();
             for map in uids {
                 writeln!(
