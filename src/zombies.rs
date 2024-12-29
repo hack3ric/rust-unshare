@@ -139,6 +139,7 @@ impl Iterator for ChildEventsIterator {
 ///                 Death(pid, _) => alive.remove(pid),
 ///                 Stop(..) => {}
 ///                 Continue(..) => {}
+///             }
 ///         }
 ///     }
 /// ```
