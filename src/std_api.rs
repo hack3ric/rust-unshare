@@ -39,7 +39,7 @@ impl Command {
                 .into_iter()
                 .collect(),
             close_fds: Vec::new(),
-            id_map_commands: None,
+            allow_setgroups: true,
             pid_env_vars: HashSet::new(),
             keep_caps: None,
             before_unfreeze: None,

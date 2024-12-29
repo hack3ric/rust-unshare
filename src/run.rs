@@ -24,7 +24,7 @@ use crate::child;
 use crate::chroot::{Chroot, Pivot};
 use crate::config::Config;
 use crate::error::ErrorCode as Err;
-use crate::error::{cmd_result, result, Error};
+use crate::error::{result, Error};
 use crate::ffi_util::ToCString;
 use crate::namespace::to_clone_flag;
 use crate::pipe::{Pipe, PipeHolder, PipeReader, PipeWriter};
@@ -330,53 +330,34 @@ impl Command {
         }
 
         if let Some(&(ref uids, ref gids)) = self.config.id_maps.as_ref() {
-            if let Some(&(ref ucmd, ref gcmd)) = self.id_map_commands.as_ref() {
-                let mut cmd = Command::new(ucmd);
-                cmd.arg(format!("{}", pid));
-                for map in uids {
-                    cmd.arg(format!("{}", map.inside_uid));
-                    cmd.arg(format!("{}", map.outside_uid));
-                    cmd.arg(format!("{}", map.count));
-                }
-                cmd_result(Err::SetIdMap, cmd.status())?;
-                let mut cmd = Command::new(gcmd);
-                cmd.arg(format!("{}", pid));
-                for map in gids {
-                    cmd.arg(format!("{}", map.inside_gid));
-                    cmd.arg(format!("{}", map.outside_gid));
-                    cmd.arg(format!("{}", map.count));
-                }
-                cmd_result(Err::SetIdMap, cmd.status())?;
-            } else {
-                let mut buf = Vec::new();
-                for map in uids {
-                    writeln!(
-                        &mut buf,
-                        "{} {} {}",
-                        map.inside_uid, map.outside_uid, map.count
-                    )
-                    .unwrap();
-                }
-                result(
-                    Err::SetIdMap,
-                    File::create(format!("/proc/{}/uid_map", pid))
-                        .and_then(|mut f| f.write_all(&buf[..])),
-                )?;
-                let mut buf = Vec::new();
-                for map in gids {
-                    writeln!(
-                        &mut buf,
-                        "{} {} {}",
-                        map.inside_gid, map.outside_gid, map.count
-                    )
-                    .unwrap();
-                }
-                result(
-                    Err::SetIdMap,
-                    File::create(format!("/proc/{}/gid_map", pid))
-                        .and_then(|mut f| f.write_all(&buf[..])),
-                )?;
+            let mut buf = Vec::new();
+            for map in uids {
+                writeln!(
+                    &mut buf,
+                    "{} {} {}",
+                    map.inside_uid, map.outside_uid, map.count
+                )
+                .unwrap();
             }
+            result(
+                Err::SetIdMap,
+                File::create(format!("/proc/{}/uid_map", pid))
+                    .and_then(|mut f| f.write_all(&buf[..])),
+            )?;
+            let mut buf = Vec::new();
+            for map in gids {
+                writeln!(
+                    &mut buf,
+                    "{} {} {}",
+                    map.inside_gid, map.outside_gid, map.count
+                )
+                .unwrap();
+            }
+            result(
+                Err::SetIdMap,
+                File::create(format!("/proc/{}/gid_map", pid))
+                    .and_then(|mut f| f.write_all(&buf[..])),
+            )?;
         }
         if let Some(ref mut callback) = self.before_unfreeze {
             callback(i32::from(pid) as u32).map_err(Error::BeforeUnfreeze)?;

@@ -85,7 +85,7 @@ pub struct Command {
     close_fds: Vec<(RawFd, RawFd)>,
     chroot_dir: Option<PathBuf>,
     pivot_root: Option<(PathBuf, PathBuf, bool)>,
-    id_map_commands: Option<(PathBuf, PathBuf)>,
+    allow_setgroups: bool,
     pid_env_vars: HashSet<OsString>,
     keep_caps: Option<[u32; 2]>,
     before_unfreeze: Option<Box<dyn FnMut(u32) -> Result<(), BoxError>>>,
